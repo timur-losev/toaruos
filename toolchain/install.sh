@@ -47,7 +47,7 @@ pushd build
 
         pushd binutils
             $DIR/tarballs/binutils-2.22/configure --target=$TARGET --prefix=$PREFIX --with-sysroot=$TOARU_SYSROOT --disable-werror || bail
-            make || bail
+            make -j8 || bail
             make install || bail
         popd
     fi
@@ -62,9 +62,9 @@ pushd build
 
         pushd gcc
             $DIR/tarballs/gcc-4.6.4/configure --target=$TARGET --prefix=$PREFIX --with-sysroot=$TOARU_SYSROOT --with-build-sysroot=$TOARU_SYSROOT --with-native-system-header-dir=$TOARU_SYSROOT --disable-nls --enable-languages=c,c++ --disable-libssp --with-newlib || bail
-            make all-gcc || bail
+            make all-gcc -j8|| bail
             make install-gcc || bail
-            make all-target-libgcc || bail
+            make all-target-libgcc -j8 || bail
             make install-target-libgcc || bail
         popd
     fi
@@ -111,7 +111,7 @@ pushd build
             # Fix the damned tooldir
             sed -s 's/prefix}\/i686-pc-toaru/prefix}/' Makefile > Makefile.tmp
             mv Makefile.tmp Makefile
-            make || bail
+            make -j8 || bail
             make DESTDIR=$TOARU_SYSROOT install || bail
             cp -r $DIR/patches/newlib/include/* $TOARU_SYSROOT/$VIRTPREFIX/include/
             cp $TARGET/newlib/libc/sys/crt0.o $TOARU_SYSROOT/$VIRTPREFIX/lib/
@@ -123,7 +123,7 @@ pushd build
     if $BUILD_LIBSTDCPP; then
         pushd gcc
             # build libstdc++
-            make all-target-libstdc++-v3 || bail
+            make all-target-libstdc++-v3 -j8 || bail
             make install-target-libstdc++-v3 || bail
         popd
     fi
@@ -134,7 +134,7 @@ pushd build
         fi
         pushd freetype
             $DIR/tarballs/freetype-2.4.9/configure --host=$TARGET --prefix=$VIRTPREFIX || bail
-            make || bail
+            make -j8 || bail
             make DESTDIR=$TOARU_SYSROOT install || bail
         popd
     fi
@@ -143,7 +143,7 @@ pushd build
         # XXX zlib can not be built in a separate directory
         pushd $DIR/tarballs/zlib*
             CC=i686-pc-toaru-gcc ./configure --static --prefix=$VIRTPREFIX || bail
-            make || bail
+            make -j8 || bail
             make DESTDIR=$TOARU_SYSROOT install || bail
         popd
     fi
@@ -154,7 +154,7 @@ pushd build
         fi
         pushd libpng
             $DIR/tarballs/libpng-1.5.13/configure --host=$TARGET --prefix=$VIRTPREFIX || bail
-            make || bail
+            make -j8 || bail
             make DESTDIR=$TOARU_SYSROOT install || bail
         popd
     fi
@@ -165,7 +165,7 @@ pushd build
         fi
         pushd pixman
             $DIR/tarballs/pixman-0.26.2/configure --host=$TARGET --prefix=$VIRTPREFIX || bail
-            make || bail
+            make -j8 || bail
             make DESTDIR=$TOARU_SYSROOT install || bail
         popd
     fi
@@ -179,7 +179,7 @@ pushd build
             cp $DIR/patches/cairo-Makefile test/Makefile
             cp $DIR/patches/cairo-Makefile perf/Makefile
             echo -e "\n\n#define CAIRO_NO_MUTEX 1" >> config.h
-            make || bail
+            make -j8 || bail
             make DESTDIR=$TOARU_SYSROOT install || bail
         popd
     fi
@@ -188,7 +188,7 @@ pushd build
         # XXX Mesa can not be built from a separate directory (configure script doesn't provide a Makefile)
         pushd $DIR/tarballs/Mesa-*
             ./configure --enable-32-bit --host=$TARGET --prefix=$VIRTPREFIX  --with-osmesa-bits=8 --with-driver=osmesa --disable-egl --disable-shared --without-x --disable-glw --disable-glut --disable-driglx-direct --disable-gallium || bail
-            make || bail
+            make -j8 || bail
             make DESTDIR=$TOARU_SYSROOT install || bail
         popd
     fi
@@ -199,7 +199,7 @@ pushd build
         fi
         pushd ncurses
             $DIR/tarballs/ncurses-5.9/configure --prefix=$VIRTPREFIX --host=$TARGET --with-terminfo-dirs=/usr/share/terminfo --with-default-terminfo-dir=/usr/share/terminfo --without-tests || bail
-            make || bail
+            make -j8 || bail
             make DESTDIR=$TOARU_SYSROOT install || bail
             cp $DIR/../util/toaru.tic $TOARU_SYSROOT/$VIRTPREFIX/share/terminfo/t/toaru
             cp $DIR/../util/toaru-vga.tic $TOARU_SYSROOT/$VIRTPREFIX/share/terminfo/t/toaru-vga
@@ -210,7 +210,7 @@ pushd build
         pushd $DIR/tarballs/vim73
             make distclean
             ac_cv_sizeof_int=4 vim_cv_getcwd_broken=no vim_cv_memmove_handles_overlap=yes vim_cv_stat_ignores_slash=no vim_cv_tgetent=zero vim_cv_terminfo=yes vim_cv_toupper_broken=no vim_cv_tty_group=world ./configure --host=$TARGET --target=$TARGET --with-sysroot=$TOARU_SYSROOT --prefix=$VIRTPREFIX --with-tlib=ncurses --enable-gui=no --disable-gtktest --disable-xim --with-features=normal --disable-gpm --without-x --disable-netbeans --enable-multibyte
-            make || bail
+            make -j8 || bail
             make DESTDIR=$TOARU_SYSROOT install || bail
         popd
     fi

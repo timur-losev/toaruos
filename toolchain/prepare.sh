@@ -55,6 +55,7 @@ pushd "$DIR" > /dev/null
         $INFO "tar"  "Decompressed source packages."
         $INFO "patch" "Patching..."
         patc "gcc"  "gcc-4.6.4" || bail
+        patcGCC2 "gcc"  "gcc-4.6.4" || bail
         #patc "mpc"  "mpc-0.9"
         #patc "mpfr" "mpfr-3.0.1"
         #patc "gmp"  "gmp-5.0.1"

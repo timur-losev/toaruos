@@ -28,6 +28,14 @@ function patc () {
     $END "patch" "$1"
 }
 
+function patcGCC2(){
+    $BEG "patch" "Patching GCC once more..."
+    pushd "$2" > /dev/null
+    patch -p1 < ../../patches/gcc-4.6.4+1.patch > /dev/null
+    popd > /dev/null
+    $END "patch" "$1"
+}
+
 function installNewlibStuff () {
     cp -r ../patches/newlib/toaru $1/newlib/libc/sys/toaru
     cp -r ../patches/newlib/include/* $1/newlib/libc/sys/toaru/
