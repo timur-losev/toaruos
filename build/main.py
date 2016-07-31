@@ -73,19 +73,11 @@ def grabTarbal(tarbal):
 
 
 def unpackTarbal(tarbal):
-    if tarbal.pk.endswith('.tar.gz') or tarbal.pk.endswith('.tgz') or tarbal.pk.endswith('.tar.xz'):
-        opener, mode = tarfile.open, 'r:gz'
-    elif tarbal.pk.endswith('tar.bz2') or tarbal.pk.endswith('.tbz'):
-        opener, mode = tarbal.open, 'r:bz2'
 
-    try:
-        file = opener(kTarbalsDir + tarbal.pk, mode)
-        try:
-            file.extractall(kTarbalsDir)
-        finally:
-            file.close()
-    finally:
-        print("Extracted" + tarbal.pk)
+    with tarfile.open(kTarbalsDir + tarbal.pk) as f:
+        f.extractall(kTarbalsDir)
+
+    print("Extracted {0}".format(tarbal.pk))
 
 def prepare():
 
@@ -112,9 +104,10 @@ def prepare():
 
     upackedTarballs = os.listdir(kTarbalsDir)
 
-    '''for dir in upackedTarballs:
+    for dir in upackedTarballs:
+        dir = os.path.abspath(kTarbalsDir + dir)
         if os.path.isdir(dir):
-            shutil.rmtree(kTarbalsDir + dir)'''
+            shutil.rmtree(dir)
 
     for tb in tarbals:
         unpackTarbal(tb)
