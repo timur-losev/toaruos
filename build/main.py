@@ -8,6 +8,19 @@ if __name__ == "__main__":
 import os, sys, tempfile, logging
 import shutil
 from subprocess import call
+import tarfile
+
+kTarbalsDir = "../toolchain/tarballs/"
+
+class Tarbal:
+    url = ""
+    pk = ""
+    desc = ""
+
+    def __init__(self, url, pk, desc):
+        self.url = url
+        self.pk = pk
+        self.desc = desc
 
 if sys.version_info >= (3,):
     import urllib.request as urllib2
@@ -36,7 +49,7 @@ def downloadFile(url, saveTo):
         blockSize = 8192
         while True:
             buffer = u.read(blockSize)
-            if not  buffer:
+            if not buffer:
                 break
 
             fileSizeDL += len(buffer)
@@ -50,28 +63,61 @@ def downloadFile(url, saveTo):
             print(status, end="")
         print()
 
-def grabTarbal(url, name, desc=None):
-    print("Pulling {0}".format(desc))
+def grabTarbal(tarbal):
+    print("Pulling {0}".format(tarbal.desc))
 
-    if os.path.exists("../toolchain/tarballs/" + name):
+    if os.path.exists(kTarbalsDir + tarbal.pk):
         print("Exists")
     else:
-        downloadFile(url + "/" + name, '../toolchain/tarballs/')
+        downloadFile(tarbal.url + "/" + tarbal.pk, kTarbalsDir)
+
+
+def unpackTarbal(tarbal):
+    if tarbal.pk.endswith('.tar.gz') or tarbal.pk.endswith('.tgz') or tarbal.pk.endswith('.tar.xz'):
+        opener, mode = tarfile.open, 'r:gz'
+    elif tarbal.pk.endswith('tar.bz2') or tarbal.pk.endswith('.tbz'):
+        opener, mode = tarbal.open, 'r:bz2'
+
+    try:
+        file = opener(kTarbalsDir + tarbal.pk, mode)
+        try:
+            file.extractall(kTarbalsDir)
+        finally:
+            file.close()
+    finally:
+        print("Extracted" + tarbal.pk)
 
 def prepare():
 
-    grabTarbal("http://www.netgull.com/gcc/releases/gcc-4.6.4", "gcc-core-4.6.4.tar.gz", "gcc")
-    grabTarbal("http://www.netgull.com/gcc/releases/gcc-4.6.4", "gcc-g++-4.6.4.tar.gz", "g++")
-    grabTarbal("http://ftp.gnu.org/gnu/binutils", "binutils-2.22.tar.gz", "binutils")
-    grabTarbal("http://b.dakko.us/~klange/mirrors", "newlib-1.19.0.tar.gz", "newlib")
-    grabTarbal("http://download.savannah.gnu.org/releases/freetype", "freetype-2.4.9.tar.gz", "freetype")
-    grabTarbal("http://zlib.net", "zlib-1.2.8.tar.gz", "zlib")
-    grabTarbal("http://b.dakko.us/~klange/mirrors", "libpng-1.5.13.tar.gz", "libpng")
-    grabTarbal("http://www.cairographics.org/releases", "pixman-0.26.2.tar.gz", "pixman")
-    grabTarbal("http://www.cairographics.org/releases", "cairo-1.12.2.tar.xz", "cairo")
-    grabTarbal("http://b.dakko.us/~klange/mirrors", "MesaLib-7.5.2.tar.gz", "mesa")
-    grabTarbal("http://b.dakko.us/~klange/mirrors", "ncurses-5.9.tar.gz" , "ncurses")
-    grabTarbal("ftp://ftp.vim.org/pub/vim/unix", "vim-7.3.tar.bz2", "vim")
+    if not os.path.exists(kTarbalsDir):
+        os.mkdir(kTarbalsDir)
+
+    tarbals = [
+        Tarbal("http://www.netgull.com/gcc/releases/gcc-4.6.4", "gcc-core-4.6.4.tar.gz", "gcc"),
+        Tarbal("http://www.netgull.com/gcc/releases/gcc-4.6.4", "gcc-g++-4.6.4.tar.gz", "g++"),
+        Tarbal("http://ftp.gnu.org/gnu/binutils", "binutils-2.22.tar.gz", "binutils"),
+        Tarbal("http://b.dakko.us/~klange/mirrors", "newlib-1.19.0.tar.gz", "newlib"),
+        Tarbal("http://download.savannah.gnu.org/releases/freetype", "freetype-2.4.9.tar.gz", "freetype"),
+        Tarbal("http://zlib.net", "zlib-1.2.8.tar.gz", "zlib"),
+        Tarbal("http://b.dakko.us/~klange/mirrors", "libpng-1.5.13.tar.gz", "libpng"),
+        Tarbal("http://www.cairographics.org/releases", "pixman-0.26.2.tar.gz", "pixman"),
+        Tarbal("http://www.cairographics.org/releases", "cairo-1.12.2.tar.xz", "cairo"),
+        Tarbal("http://b.dakko.us/~klange/mirrors", "MesaLib-7.5.2.tar.gz", "mesa"),
+        Tarbal("http://b.dakko.us/~klange/mirrors", "ncurses-5.9.tar.gz", "ncurses"),
+        Tarbal("ftp://ftp.vim.org/pub/vim/unix", "vim-7.3.tar.bz2", "vim")
+    ]
+
+    for tb in tarbals:
+        grabTarbal(tb)
+
+    upackedTarballs = os.listdir(kTarbalsDir)
+
+    '''for dir in upackedTarballs:
+        if os.path.isdir(dir):
+            shutil.rmtree(kTarbalsDir + dir)'''
+
+    for tb in tarbals:
+        unpackTarbal(tb)
 
 def main():
     workDir = os.getcwd()
