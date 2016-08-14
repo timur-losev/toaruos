@@ -117,9 +117,24 @@ def prepare():
     for tb in tarbals:
         unpackTarbal(tb)
 
+# Apply needed patches
     for tb in tarbals:
         if tb.patchItem:
-             subprocess.check_call(["patch", "-p1 < " + kPatchesDir + tb.patchItem + ".patch"])
+            command = "patch -p1 < " + "../../patches/" + tb.patchItem + ".patch"
+            subprocess.Popen(command, shell=True, cwd=kTarbalsDir+tb.patchItem)
+
+# Install newlib staff
+    newlibPatchesDir = kPatchesDir + "newlib/"
+    newlibFolder = kTarbalsDir + "newlib-1.19.0/newlib/libc/";
+    shutil.copytree(newlibPatchesDir + "toaru", newlibFolder + "sys/toaru")
+    shutil.copytree(newlibPatchesDir + "include", newlibFolder + "sys/toaru/include")
+
+    shutil.copy(newlibPatchesDir + "setjmp.S", newlibFolder + "machine/i386/")
+
+    shutil.copy(newlibPatchesDir + "wcwidth.c", newlibFolder + "string/")
+    shutil.copy(newlibPatchesDir + "wcswidth.c", newlibFolder + "string/")
+
+
 
 def main():
     workDir = os.getcwd()
