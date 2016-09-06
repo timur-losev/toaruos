@@ -10,9 +10,21 @@ import shutil
 import subprocess
 import tarfile
 import glob
+from contextlib import contextmanager
 
-kTarbalsDir = "../toolchain/tarballs/"
-kPatchesDir = "../toolchain/patches/"
+kDir = "../toolchain/"
+kTarbalsDir = kDir + "tarballs/"
+kPatchesDir = kDir + "patches/"
+kTarget = "i686-pc-toaru"
+kSysRoot = os.path.abspath(kDir + '/../hdd')
+kPrefix = os.path.abspath(kDir + "local/")
+
+@contextmanager
+def pushd(new_dir):
+    prev_dir = os.getcwd()
+    os.chdir(new_dir)
+    yield
+    os.chdir(prev_dir)
 
 class Tarbal:
     url = ""
@@ -33,7 +45,8 @@ else:
     import urllib2
     import urlparse
 
-def downloadFile(url, saveTo):
+
+def download_file(url, saveTo):
     u = urllib2.urlopen(url)
 
     scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
@@ -67,16 +80,17 @@ def downloadFile(url, saveTo):
             print(status, end="")
         print()
 
-def grabTarbal(tarbal):
+
+def grab_tarbal(tarbal):
     print("Pulling {0}".format(tarbal.desc))
 
     if os.path.exists(kTarbalsDir + tarbal.pk):
         print("Exists")
     else:
-        downloadFile(tarbal.url + "/" + tarbal.pk, kTarbalsDir)
+        download_file(tarbal.url + "/" + tarbal.pk, kTarbalsDir)
 
 
-def unpackTarbal(tarbal):
+def unpack_tarbal(tarbal):
 
     with tarfile.open(kTarbalsDir + tarbal.pk) as f:
         f.extractall(kTarbalsDir)
@@ -102,7 +116,7 @@ tarbals = [
 
 def download_dependencies():
     for tb in tarbals:
-        grabTarbal(tb)
+        grab_tarbal(tb)
 
 
 def remove_old_dependencies_tree():
@@ -115,7 +129,7 @@ def remove_old_dependencies_tree():
 
 def unpack_tarbals():
     for tb in tarbals:
-        unpackTarbal(tb)
+        unpack_tarbal(tb)
 
 def apply_patches():
     for tb in tarbals:
@@ -159,10 +173,36 @@ def prepare():
     install_newlib_stuff()
 
 
+def check_call(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+
+    for line in p.stdout:
+        print(line)
+    p.wait()
+    return p.returncode
+
+
+def compile_binutils():
+    with pushd(kDir + "build"):
+        if not os.path.exists("binutils"):
+            os.mkdir("binutils")
+        with pushd("binutils"):
+            command_conf = "../../tarballs/binutils-2.22/configure --target={0} --prefix={1} --with-sysroot={2} --disable-werror".format(kTarget, kPrefix, kSysRoot)
+            check_call(command_conf)
+            check_call('make -j8')
+            check_call('make install')
+
+
+def install():
+    compile_binutils()
+
+
 def main():
     workDir = os.getcwd()
     print(workDir)
 
-    prepare()
+    #prepare()
+
+    install()
 
 
