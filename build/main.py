@@ -13,6 +13,7 @@ import glob
 from contextlib import contextmanager
 
 kDir = "../toolchain/"
+kBuildDir = kDir + 'build'
 kTarbalsDir = kDir + "tarballs/"
 kPatchesDir = kDir + "patches/"
 kTarget = "i686-pc-toaru"
@@ -183,7 +184,7 @@ def check_call(command):
 
 
 def compile_binutils():
-    with pushd(kDir + "build"):
+    with pushd(kBuildDir):
         if not os.path.exists("binutils"):
             os.mkdir("binutils")
         with pushd("binutils"):
@@ -194,6 +195,9 @@ def compile_binutils():
 
 
 def install():
+    if not os.path.exists(kBuildDir):
+        os.mkdir(kBuildDir)
+
     compile_binutils()
 
 
@@ -201,7 +205,7 @@ def main():
     workDir = os.getcwd()
     print(workDir)
 
-    #prepare()
+    prepare()
 
     install()
 
